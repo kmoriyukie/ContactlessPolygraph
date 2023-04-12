@@ -1,6 +1,9 @@
 import filters
 import lib
 import cv2
+import numpy as np
+import scipy
+import video
 def main():
     img = cv.imread('./data/cute.cute.jpg')
     
@@ -9,10 +12,8 @@ def main():
 
 # main()
 
-# lib.showImage('./data/cute.jpg')
+vid = video.video("./data/baby.mp4")
+vid.disp()
+# vid.getFrames()
 
-img = filters.blurDownsample(cv2.imread('./data/cute.jpg'), 2, 'binom5')
-# print(img.dtype)
-cv2.imshow('img',img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+print(len(vid.fraqmes))

@@ -57,9 +57,34 @@ def blurDownsample(image, levels, filter = 'binom5'):
         return image
 
 # idealBandPassing:
-# Applies bandpass filter on input
+# Applies ideal bandpass filter on input
 # wLow: lower cutoff region
 # wUpper: upper cutoff region
 
-def idealBandPassing(input, dim, wLow, wUpper, samplingRate):
+# blurDownsampleStack():
+def idealBandPassing(input, wLow, wUpper, samplingRate):
+    stackOut = []
+
+    for s in input:
+        # print(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)).shape)
+        stackOut.append(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)))
+    
+    # aux = np.asarray(input).shape
+    # shap = [a for a in aux]
+    # shap.append(3)
+    return stackOut
+
+def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
+    f = scipy.fft.fft(input)
+    n = input.shape[0]
+
+    freq = np.linspace(0, n-1,n)/n*samplingRate
+    for j,i in enumerate(freq):
+        if(~(i > wLow and i < wUpper)):
+            f[j] = 0
+        
+    return np.real(scipy.fft.ifft(f)).squeeze()
+
+    
+
 

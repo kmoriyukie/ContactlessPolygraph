@@ -1,25 +1,68 @@
 import cv2
-
+import numpy as np
 class video():
-    def __init__(self, path = ""):
-        self.cap = cv2.VideoCapture(path)
-        self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.len = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    frames = []
+    def __init__(self, path = "", stack = None):
+        self.path = path
+        if stack != None:
+            self.width = len(stack[1])
+            self.height = len(stack[2])
+            self.fps = 30
+            self.frames = np.asarray(stack)
+            self.len = len(self.frames)
+            
+            self.displayInfo()
+        else:
+            cap = cv2.VideoCapture(self.path)
+            self.width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+            self.height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            self.fps = cap.get(cv2.CAP_PROP_FPS)
+            self.len = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            self.getFrames()
+    def displayInfo(self):
+        print("Length: ",self.len)
+        print("Width: ",self.width)
+        print("Height: ",self.height)
+        print("# Frames: ",len(self.frames))
+    def export(self, new_file_name=''):
+        if(new_file_name==''):
+            new_file_name=self.path
+
+        height, width = self.frames[0].shape[:2]
+        result = cv2.VideoWriter('./results/' + new_file_name, 
+                                cv2.VideoWriter_fourcc(*'mp4v'), 
+                                self.fps,
+                                (width, height))
+        
+        for f in self.frames:
+            result.write(f.astype('uint8'))            
+
+        result.release()
     def disp(self):
-        if(self.cap.isOpened == False):
+        cap = cv2.VideoCapture(self.path)
+        if(cap.isOpened == False):
             print("Error opening video!")
-        while(self.cap.isOpened()):
-            ret, frame = self.cap.read()
+        while(cap.isOpened()):
+            ret, frame = cap.read()
             if ret == True:
                 cv2.imshow('Frame',frame)
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
             else: 
                 break
-        self.cap.release()
+        cap.release()
         cv2.destroyAllWindows()
-            
-vid = video("./data/baby.mp4")
-vid.disp()
+    def getFrames(self):
+        cap = cv2.VideoCapture(self.path)
+        count = 0
+        self.frames = []
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            count +=1
+            if ret == True:
+                self.frames.append(frame)
+                if count == self.len:
+                    break
+            else: 
+                break
+        cap.release()
