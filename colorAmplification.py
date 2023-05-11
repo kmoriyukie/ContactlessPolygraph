@@ -40,6 +40,7 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
         f = f + lib.rgb2ntsc(video.frames[i])
        
         f = lib.ntsc2rgb(f)
+
         f = lib.normalizedImage(f)
 
         f[f<0] = 0
@@ -83,5 +84,5 @@ def colorAmplification_Butter(video, alpha, level, bandpassRange, samplingRate, 
     v.export()
 
 
-v = vid.video(path="data/face2.mp4")
-colorAmplification(v, 50, 6, [0, 60], 30, 1)
+v = vid.video(path="data/face.mp4")
+colorAmplification(v, 50, 4, [50.0/60, 60.0/60], 30, 1)
