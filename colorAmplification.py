@@ -25,16 +25,22 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
     filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
     print("Done!")
 
-    filteredStack[:][:][:][0] = filteredStack[:][:][:][0] * alpha
-    filteredStack[:][:][:][1] = filteredStack[:][:][:][1] * alpha * chromAttenuation
-    filteredStack[:][:][:][2] = filteredStack[:][:][:][2] * alpha * chromAttenuation
+    # filteredStack[:][:][:][0] = filteredStack[:][:][:][0] * alpha
+    # filteredStack[:][:][:][1] = filteredStack[:][:][:][1] * alpha * chromAttenuation
+    # filteredStack[:][:][:][2] = filteredStack[:][:][:][2] * alpha * chromAttenuation
     
     
     stack = []
     
     print(len(filteredStack))
     for i in range(len(filteredStack)):
+        
         filtered = filteredStack[i].squeeze()
+        
+        filtered[:,:,0] = filtered[:,:,0] * alpha
+        filtered[:,:,1] = filtered[:,:,1] * alpha * chromAttenuation
+        filtered[:,:,2] = filtered[:,:,2] * alpha * chromAttenuation
+
         f = cv2.resize(filtered,(int(video.width), int(video.height)))
 
         f = f + lib.rgb2ntsc(video.frames[i])
@@ -85,4 +91,4 @@ def colorAmplification_Butter(video, alpha, level, bandpassRange, samplingRate, 
 
 
 v = vid.video(path="data/face.mp4")
-colorAmplification(v, 50, 4, [50.0/60, 60.0/60], 30, 1)
+colorAmplification(v,50, 4, [50.0/60, 60.0/60], 30, 1)

@@ -38,9 +38,9 @@ def correlationDownsample(image, filter, step = [2,2], window_stop = (-1,-1), wi
     # image[:,:,0] = scipy.ndimage.correlate(1.0*image1, filter).squeeze()
     # image[:,:,1] = scipy.ndimage.correlate(1.0*image2, filter).squeeze()
     # image[:,:,2] = scipy.ndimage.correlate(1.0*image3, filter).squeeze()
-    image=np.pad(image,4,'reflect')
+    # image=np.pad(image,4,'reflect')
     filter = filter[len(filter)-1:1:-1, len(filter)-1:1:-1]
-    image = scipy.signal.convolve2d(1.0*image, filter,mode='valid')
+    image = scipy.signal.convolve2d(1.0*image, filter)
 
     return image[window_start[0]:window_stop[0]:step[0], window_start[1]:window_stop[1]:step[1]]
     
@@ -94,23 +94,24 @@ def idealBandPassing(input, wLow, wUpper, samplingRate):
 
 def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
     # dim = 1
-    # input = np.moveaxis(input,0, 0)
+    input = np.moveaxis(input,0, 1)
     # Transform into frequency domain
     # input = lib.rgb2ntsc(input)
     
     n = input.shape[0]
     # Get frequency of each t
-    freq = np.linspace(0, n-1, n)/n*samplingRate
+    freq = (np.linspace(1, n, n) - 1)/n*samplingRate
     #filtering
     mask = np.nonzero((freq > wLow) & (freq < wUpper))
     mask = ml.repmat(mask, 1, input.shape[1])
 
     f = scipy.fft.fft(input,axis=0)
+    # f = np.fft.fftshift(f)
     f[~mask] = 0
 
     out = scipy.fft.ifft(f,axis=0)
 
-    # out = np.moveaxis(out,0, 1)
+    out = np.moveaxis(out,1, 0)
     return np.real(out).squeeze()
 
     
