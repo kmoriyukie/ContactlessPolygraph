@@ -30,7 +30,7 @@ class video():
 
         height, width = self.frames[0].shape[:2]
         result = cv2.VideoWriter('./results/' + new_file_name, 
-                                cv2.VideoWriter_fourcc(*'mp4v'), 
+                                cv2.VideoWriter_fourcc(*'DIVX'), 
                                 self.fps,
                                 (width, height))
         

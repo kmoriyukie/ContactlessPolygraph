@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 import cv2
+import lib
 def getFilter(name):
     if name == 'binom5':
         a = np.array([1,1])
@@ -22,16 +23,12 @@ def correlationDownsample(image, filter, step = [2,2], window_stop = (-1,-1), wi
     if(window_stop == (-1,-1)):
         window_stop = (image.shape[0], image.shape[1])
 
-    cv2.normalize(image.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
-    image1 = image[:,:,0]
-    image2 = image[:,:,1]
-    image3 = image[:,:,2]
-
-    image1 = image1[:,:,None]
-    image2 = image2[:,:,None]
-    image3 = image3[:,:,None]
+    image1 = image[:,:,0].squeeze()
+    image2 = image[:,:,1].squeeze()
+    image3 = image[:,:,2].squeeze()
     
-    filter= filter[:,:,None]
+    filter= filter[:,:]
+
     image[:,:,0] = scipy.ndimage.correlate(1.0*image1, filter).squeeze()
     image[:,:,1] = scipy.ndimage.correlate(1.0*image2, filter).squeeze()
     image[:,:,2] = scipy.ndimage.correlate(1.0*image3, filter).squeeze()
@@ -42,8 +39,12 @@ def correlationDownsample(image, filter, step = [2,2], window_stop = (-1,-1), wi
 # Recursively blurs and downsamples the image levels times.
 # The downsampling is always done by 2 in each direction.
 def blurDownsample(image, levels, filter = 'binom5'):
+    image = lib.rgb2ntsc(image)
+    
     filt = getFilter(filter)
+    filt = filt
     filt = filt/filt.sum()
+
     if levels > 1:
         image = blurDownsample(image, levels - 1, filter)
     if levels >= 1:
@@ -75,16 +76,26 @@ def idealBandPassing(input, wLow, wUpper, samplingRate):
     return stackOut
 
 def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
+    # input = np.moveaxis(input,0, 0)
+    # Transform into frequency domain
+    # input = lib.rgb2ntsc(input)
     f = scipy.fft.fft(input)
+    # print(f.mean())
     n = input.shape[0]
-
+    # Get frequency of each t
     freq = np.linspace(0, n-1,n)/n*samplingRate
-    for j,i in enumerate(freq):
-        if(~(i > wLow and i < wUpper)):
-            f[j] = 0
-        
-    return np.real(scipy.fft.ifft(f)).squeeze()
+    #filtering
+    for k in range(input.shape[1]):
+        for j,i in enumerate(freq):
+            if(~(i > wLow and i < wUpper)):
+                f[j][k] = 0
+    #ifft
+    out = scipy.fft.ifft(f)
+
+    # out = np.moveaxis(out,-1, input.shape[2]-1)
+    return np.real(out).squeeze()
 
     
-
+def butterFilter():
+    return
 

@@ -21,11 +21,57 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
     gaussianStack = stackBuilders.buildGaussianStack(video, temporalWindow, level)
     print("Done!")
 
+    print("Temporal filtering...")
+    filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
+    print("Done!")
+
+    filteredStack[:][:][:][0] = filteredStack[:][:][:][0] * alpha
+    filteredStack[:][:][:][1] = filteredStack[:][:][:][1] * alpha * chromAttenuation
+    filteredStack[:][:][:][2] = filteredStack[:][:][:][2] * alpha * chromAttenuation
+    
+    
+    stack = []
+    
+    print(len(filteredStack))
+    for i in range(len(filteredStack)):
+        filtered = filteredStack[i].squeeze()
+        f = cv2.resize(filtered,(int(video.width), int(video.height)))
+
+        f = f + lib.rgb2ntsc(video.frames[i])
+       
+        f = lib.ntsc2rgb(f)
+        f = lib.normalizedImage(f)
+
+        f[f<0] = 0
+        f[f>255] = 255
+        stack.append(f)
+    v = vid.video(stack=stack,path="newfil.avi")
+    v.export()
+
+def colorAmplification_Butter(video, alpha, level, bandpassRange, samplingRate, chromAttenuation):
+    temporalWindow = [0, int(video.len)]
+
+    print("Spatial Filtering...")
+    gaussianStack = stackBuilders.buildGaussianStack(video, temporalWindow, level)
+    print("Done!")
+
     print("Gaussian Stack Size: ", np.asarray(gaussianStack).shape)
 
+
+    print("Temporal filtering...")
+    filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
+    print("Done!")
+
+    print(np.asarray(filteredStack).shape)
+    filteredStack[:][:][:][0] = filteredStack[:][:][:][0] * alpha
+    filteredStack[:][:][:][1] = filteredStack[:][:][:][1] * alpha * chromAttenuation
+    filteredStack[:][:][:][2] = filteredStack[:][:][:][2] * alpha * chromAttenuation
+    
     stack = []
-    for i in range(len(gaussianStack[0])):
-        filtered = gaussianStack[i].squeeze()
+    
+    print(len(filteredStack))
+    for i in range(len(filteredStack)):
+        filtered = filteredStack[i].squeeze()
         f = cv2.resize(filtered,(int(video.width), int(video.height)))
         f = lib.rgb2ntsc(f) + lib.rgb2ntsc(video.frames[i])
        
@@ -33,20 +79,9 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
         f = lib.normalizedImage(f)
 
         stack.append(f)
-
-    
-
-    # print("Temporal filtering...")
-    # filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
-    # print("Done!")
-
-    # print(np.asarray(filteredStack).shape)
-    # filteredStack[:][:][0] = filteredStack[:][:][0] * alpha
-    # filteredStack[:][:][1] = filteredStack[:][:][1] * alpha
-    # filteredStack[:][:][2] = filteredStack[:][:][2] * alpha
-    
     v = vid.video(stack=stack,path="newfile.mp4")
     v.export()
 
-v = vid.video(path="data/baby.mp4")
-colorAmplification(v, 50, 1, [50/60, 60/60], 30, 1)
+
+v = vid.video(path="data/face2.mp4")
+colorAmplification(v, 50, 6, [0, 60], 30, 1)
