@@ -17,3 +17,11 @@ def buildGaussianStack(video, temporalWindow, level):
     return stack
     # cv2.destroyAllWindows()
 
+#buildLaplacianStack()
+# Build Laplacian Pyramid. The second dimension is the color channel,
+# the third dimension is the time.
+# - video
+# - window [startIndex, endIndex]
+def buildLaplacianStack(video, window):
+    stack = []
+    return

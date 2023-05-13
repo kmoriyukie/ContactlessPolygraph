@@ -69,31 +69,17 @@ def blurDownsample(image, levels, filter = 'binom5'):
     else:
         return image
 
+def ConvUpsample(image, filter, step, start, stop):
+
+    return
 
 # idealBandPassing:
 # Applies ideal bandpass filter on input
 # wLow: lower cutoff region
 # wUpper: upper cutoff region
 
-# blurDownsampleStack():
 def idealBandPassing(input, wLow, wUpper, samplingRate):
-    stackOut = []
-
-    for s in input:
-        # print(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)).shape)
-        stackOut.append(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)))
-    
-    # aux = np.asarray(input).shape
-    # shap = [a for a in aux]
-    # shap.append(3)
-    return stackOut
-
-def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
     dim = 1
-
-    # Transform into frequency domain
-    # input = lib.rgb2ntsc(input)
-    # input = shiftdim(input,dim-1);
 
     f = np.roll(input,dim-1)
     input = np.asarray(f)
@@ -103,41 +89,41 @@ def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
     n = dimensions[0]
     print(n)
     dn = len(dimensions)
-    # print(dn)
-    # Get frequency of each t
+
     freq = (np.linspace(1, n, n) - 1)/n*samplingRate
 
     mask = np.asarray((freq > wLow) & (freq < wUpper))[np.newaxis][np.newaxis][np.newaxis].transpose()
 
-    # print(mask.shape)
-    
-    # print('mask shape',mask.shape)
-    
     dimensions[0] = 1
-    # print(mask)
-    # mask = mask.transpose()
-    # print('dims',dimensions)
+    
     mask = np.tile(mask, dimensions)
-    # print('mask shape',mask.shape)
-    # print(mask)
+    
     f = scipy.fft.fft(f,axis=0)
 
 
     f[~mask] = 0 
     
     out = np.real(scipy.fft.ifft(f,axis=0))
-    
-    # out = lib.shiftdim(out,dn-(dim-1)-1)
 
-    
-    # print(out.shape)  
-    # out = np.moveaxis(out,0, )
     return out
 
-    
+# Applies butterworth filter on input
 def butterFilter():
-    return
 
+
+    return
+# blurDownsampleStack():
+# def idealBandPassing(input, wLow, wUpper, samplingRate):
+#     stackOut = []
+
+#     for s in input:
+#         # print(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)).shape)
+#         stackOut.append(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)))
+    
+#     # aux = np.asarray(input).shape
+#     # shap = [a for a in aux]
+#     # shap.append(3)
+#     return stackOut
 # A = np.array([[2, 2, 0, 6, 4, 9, 0, 1, 5, 3, 9, 3, 1, 2, 1, 8],
 #               [2, 2, 0, 6, 4, 9, 0, 1, 5, 3, 9, 3, 1, 2, 1, 8],
 #               [9, 2, 2, 6, 9, 1, 1, 7, 8, 0, 9, 8, 5, 6, 2, 6],

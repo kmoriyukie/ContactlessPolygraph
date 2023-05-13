@@ -22,7 +22,7 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
     print("Done!")
 
     print("Temporal filtering...")
-    filteredStack = filters.idealBandPassingSingle(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
+    filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
     print("Done!")
 
     stack = []
