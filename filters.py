@@ -5,16 +5,10 @@ import lib
 from numpy import matlib as ml
 def getFilter(name):
     if name == 'binom5':
-        # a = np.array([1,1])
-        # b = np.array([1])
-        # for _ in range(5):
-        #     b = np.convolve(a, b)
-        # return 1/25 * np.multiply(b, b.reshape([b.shape[0],1]))
-        return 1/25 * np.array([[1, 4, 6, 4, 1],
-                    [4, 16, 24, 16, 4],
-                    [6, 24, 36, 24, 6],
-                    [4, 16, 24, 16, 4],
-                    [1, 4, 6, 4, 1]])
+        kern = [0.5, 0.5]
+        for _ in range(5-2):
+            kern = scipy.signal.convolve([0.5,0.5], kern)
+        return np.sqrt(2) * kern
     elif name =='haar':
         return np.array([1/sqrt(2),1/sqrt(2)])
     elif name == 'gauss':
@@ -25,22 +19,19 @@ def getFilter(name):
 #  filter: which filter to filter with
 #  step: how much to downsample
 #  window_start and window_stop: determine the window in which the image will be filtered
-def correlationDownsample(image, filter, step = [2,2], window_stop = (-1,-1), window_start = (0,0)):
+def correlationDownsample(image, filter, step = [2,2], window_stop = (-1,-1), window_start = (0,0),axis=0):
     if(window_stop == (-1,-1)):
         window_stop = (image.shape[0], image.shape[1])
 
-    # image1 = image[:,:,0].squeeze()
-    # image2 = image[:,:,1].squeeze()
-    # image3 = image[:,:,2].squeeze()
-    
-    # filter= filter[:,:]
-
-    # image[:,:,0] = scipy.ndimage.correlate(1.0*image1, filter).squeeze()
-    # image[:,:,1] = scipy.ndimage.correlate(1.0*image2, filter).squeeze()
-    # image[:,:,2] = scipy.ndimage.correlate(1.0*image3, filter).squeeze()
-    # image=np.pad(image,4,'reflect')
-    filter = filter[len(filter)-1:1:-1, len(filter)-1:1:-1]
-    image = scipy.signal.convolve2d(1.0*image, filter)
+    if len(filter.shape) == 1:
+        # filter = filter[len(filter)-1:0:-1]
+        if(axis==1):
+            image = scipy.ndimage.correlate1d(image*1.0, filter,axis=0)
+        else:
+            image = scipy.ndimage.correlate1d(image*1.0, filter,axis=1)
+    else:
+        filter = filter[len(filter)-1:0:-1, len(filter)-1:0:-1]
+        image = scipy.ndimage.convolve(1.0*image, filter,mode='reflect')
 
     return image[window_start[0]:window_stop[0]:step[0], window_start[1]:window_stop[1]:step[1]]
     
@@ -58,21 +49,26 @@ def blurDownsample_(image, levels,filter='binom5'):
     return out
 
 def blurDownsample(image, levels, filter = 'binom5'):
-    filt = getFilter(filter)
-    filt = filt
+    if(isinstance(filter, str)):
+        filt = getFilter(filter)
+    else:
+        filt = filter
     filt = filt/filt.sum()
 
     if levels > 1:
-        image = blurDownsample(image, levels - 1, filter)
+        image = blurDownsample(image, levels - 1, filt)
+
+    
     if levels >= 1:
-        if(image.shape[0]==1 or image.shape[1] ==1):
-            return correlationDownsample(image, filt)
-        if(filt.shape == (1,)):
-            return correlationDownsample(correlationDownsample(image, filt, [2,1]), filt, [1,2])
+        if(image.shape[0] == 1 or image.shape[1] == 1):
+            return correlationDownsample(image, filt, ((image.shape[0]!=1) * 1+1,(image.shape[1]!=1) * 1 +1))
+        elif(len(filt.shape)==1):
+            return correlationDownsample(correlationDownsample(image, filt, [2,1],axis=1), filt, [1,2])
         else: 
-            return correlationDownsample(image, filt)
+            return correlationDownsample(image, filt, [2,2])
     else:
         return image
+
 
 # idealBandPassing:
 # Applies ideal bandpass filter on input
@@ -93,28 +89,72 @@ def idealBandPassing(input, wLow, wUpper, samplingRate):
     return stackOut
 
 def idealBandPassingSingle(input, wLow, wUpper, samplingRate):
-    # dim = 1
-    input = np.moveaxis(input,0, 1)
+    dim = 1
+
     # Transform into frequency domain
     # input = lib.rgb2ntsc(input)
-    
-    n = input.shape[0]
+    # input = shiftdim(input,dim-1);
+
+    f = np.roll(input,dim-1)
+    input = np.asarray(f)
+
+    dimensions = list(f.shape)
+
+    n = dimensions[0]
+    print(n)
+    dn = len(dimensions)
+    # print(dn)
     # Get frequency of each t
     freq = (np.linspace(1, n, n) - 1)/n*samplingRate
-    #filtering
-    mask = np.nonzero((freq > wLow) & (freq < wUpper))
-    mask = ml.repmat(mask, 1, input.shape[1])
 
-    f = scipy.fft.fft(input,axis=0)
-    # f = np.fft.fftshift(f)
-    f[~mask] = 0
+    mask = np.asarray((freq > wLow) & (freq < wUpper))[np.newaxis][np.newaxis][np.newaxis].transpose()
 
-    out = scipy.fft.ifft(f,axis=0)
+    # print(mask.shape)
+    
+    # print('mask shape',mask.shape)
+    
+    dimensions[0] = 1
+    # print(mask)
+    # mask = mask.transpose()
+    # print('dims',dimensions)
+    mask = np.tile(mask, dimensions)
+    # print('mask shape',mask.shape)
+    # print(mask)
+    f = scipy.fft.fft(f,axis=0)
 
-    out = np.moveaxis(out,1, 0)
-    return np.real(out).squeeze()
+
+    f[~mask] = 0 
+    
+    out = np.real(scipy.fft.ifft(f,axis=0))
+    
+    # out = lib.shiftdim(out,dn-(dim-1)-1)
+
+    
+    # print(out.shape)  
+    # out = np.moveaxis(out,0, )
+    return out
 
     
 def butterFilter():
     return
 
+# A = np.array([[2, 2, 0, 6, 4, 9, 0, 1, 5, 3, 9, 3, 1, 2, 1, 8],
+#               [2, 2, 0, 6, 4, 9, 0, 1, 5, 3, 9, 3, 1, 2, 1, 8],
+#               [9, 2, 2, 6, 9, 1, 1, 7, 8, 0, 9, 8, 5, 6, 2, 6],
+#               [4, 0, 3, 6, 6, 6, 6, 6, 3, 1, 5, 7, 1, 0, 6, 8],
+#               [4, 1, 1, 4, 3, 0, 5, 0, 5, 1, 9, 6, 6, 7, 0, 9],
+#               [2, 9, 5, 3, 8, 1, 7, 7, 3, 5, 1, 0, 2, 5, 5, 9],
+#               [9, 7, 8, 9, 7, 1, 5, 4, 2, 7, 9, 0, 2, 7, 3, 8],
+#               [1, 5, 6, 2, 8, 5, 5, 4, 7, 8, 6, 1, 4, 4, 9, 3],
+#               [6, 0, 0, 5, 3, 0, 3, 1, 2, 4, 6, 4, 6, 3, 4, 8],
+#               [4, 9, 8, 0, 9, 8, 3, 2, 9, 4, 5, 6, 8, 9, 9, 7],
+#               [8, 1, 2, 6, 7, 3, 7, 7, 1, 7, 8, 0, 6, 6, 2, 7],
+#               [6, 0, 1, 4, 0, 1, 8, 3, 8, 3, 1, 4, 2, 7, 2, 5],
+#               [2, 0, 1, 3, 0, 2, 1, 5, 8, 8, 6, 9, 0, 1, 7, 6],
+#               [1, 8, 5, 5, 8, 4, 6, 8, 5, 6, 4, 0, 6, 2, 8, 9],
+#               [9, 0, 7, 1, 0, 6, 8, 8, 5, 4, 0, 7, 9, 8, 5, 5],
+#               [2, 5, 7, 8, 9, 4, 7, 6, 4, 9, 4, 0, 2, 9, 1, 6],
+#               [0, 6, 9, 1, 6, 8, 6, 0, 7, 7, 7, 0, 4, 2, 6, 9]])
+# print(A.shape)
+# # a = idealBandPassingSingle(A, 20.0/60, 40.0/60, 1)
+# # print(a)

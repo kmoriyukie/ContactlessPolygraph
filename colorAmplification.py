@@ -22,14 +22,9 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
     print("Done!")
 
     print("Temporal filtering...")
-    filteredStack = filters.idealBandPassing(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
+    filteredStack = filters.idealBandPassingSingle(gaussianStack, bandpassRange[0], bandpassRange[1], samplingRate)
     print("Done!")
 
-    # filteredStack[:][:][:][0] = filteredStack[:][:][:][0] * alpha
-    # filteredStack[:][:][:][1] = filteredStack[:][:][:][1] * alpha * chromAttenuation
-    # filteredStack[:][:][:][2] = filteredStack[:][:][:][2] * alpha * chromAttenuation
-    
-    
     stack = []
     
     print(len(filteredStack))
@@ -51,8 +46,9 @@ def colorAmplification(video, alpha, level, bandpassRange, samplingRate, chromAt
 
         f[f<0] = 0
         f[f>255] = 255
+        
         stack.append(f)
-    v = vid.video(stack=stack,path="newfil.avi")
+    v = vid.video(stack=stack,path="face.avi")
     v.export()
 
 def colorAmplification_Butter(video, alpha, level, bandpassRange, samplingRate, chromAttenuation):
@@ -91,4 +87,4 @@ def colorAmplification_Butter(video, alpha, level, bandpassRange, samplingRate, 
 
 
 v = vid.video(path="data/face.mp4")
-colorAmplification(v,50, 4, [50.0/60, 60.0/60], 30, 1)
+colorAmplification(v, 60, 6, [50.0/60, 60.0/60], 30, 1)

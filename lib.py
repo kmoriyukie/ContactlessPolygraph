@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+from collections import deque
 
 def showImage(imagePath, windowName='img'):
     img = cv2.imread(imagePath)
@@ -39,3 +39,22 @@ def normalizedImage(img):
     img = 255.0 * (img - img.min())/(img.max() - img.min())
     
     return img 
+
+def shiftdim(array, n=None):
+    if n is not None:
+        if n >= 0:
+            axes = tuple(range(len(array.shape)))
+            new_axes = deque(axes)
+            new_axes.rotate(n)
+            return np.moveaxis(array, axes, tuple(new_axes))
+        return np.expand_dims(array, axis=tuple(range(-n)))
+    else:
+        idx = 0
+        for dim in array.shape:
+            if dim == 1:
+                idx += 1
+            else:
+                break
+        axes = tuple(range(idx))
+        # Note that this returns a tuple of 2 results
+        return np.squeeze(array, axis=axes), len(axes)
