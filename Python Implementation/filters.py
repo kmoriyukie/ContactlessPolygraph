@@ -29,7 +29,6 @@ def correlationDownsample(image,
         window_stop = (image.shape[0], image.shape[1])
 
     if len(filter.shape) == 1:
-        # filter = filter[len(filter)-1:0:-1]
         if(axis==1):
             image = scipy.ndimage.correlate1d(image*1.0, filter,axis=0)
         else:
@@ -109,44 +108,3 @@ def idealBandPassing(input, wLow, wUpper, samplingRate,dim=1):
     out = np.real(scipy.fft.ifft(f,axis=0))
 
     return out
-
-# Applies butterworth filter on input
-def butterFilter():
-
-
-    return
-# blurDownsampleStack():
-# def idealBandPassing(input, wLow, wUpper, samplingRate):
-#     stackOut = []
-
-#     for s in input:
-#         # print(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)).shape)
-#         stackOut.append(np.asarray(idealBandPassingSingle(s, wLow, wUpper, samplingRate)))
-    
-    # aux = np.asarray(input).shape
-    # shap = [a for a in aux]
-    # shap.append(3)
-    # return stackOut
-
-A = np.array([[2,2],[2,2],[2,2],[2,2]])
-# A = np.array([[2, 2, 0, 6, 4, 9, 0, 1, 5, 3, 9, 3, 1, 2, 1, 8],
-#               [9, 2, 2, 6, 9, 1, 1, 7, 8, 0, 9, 8, 5, 6, 2, 6],
-#               [4, 0, 3, 6, 6, 6, 6, 6, 3, 1, 5, 7, 1, 0, 6, 8],
-#               [4, 1, 1, 4, 3, 0, 5, 0, 5, 1, 9, 6, 6, 7, 0, 9],
-#               [2, 9, 5, 3, 8, 1, 7, 7, 3, 5, 1, 0, 2, 5, 5, 9],
-#               [9, 7, 8, 9, 7, 1, 5, 4, 2, 7, 9, 0, 2, 7, 3, 8],
-#               [1, 5, 6, 2, 8, 5, 5, 4, 7, 8, 6, 1, 4, 4, 9, 3],
-#               [6, 0, 0, 5, 3, 0, 3, 1, 2, 4, 6, 4, 6, 3, 4, 8],
-#               [4, 9, 8, 0, 9, 8, 3, 2, 9, 4, 5, 6, 8, 9, 9, 7],
-#               [8, 1, 2, 6, 7, 3, 7, 7, 1, 7, 8, 0, 6, 6, 2, 7],
-#               [6, 0, 1, 4, 0, 1, 8, 3, 8, 3, 1, 4, 2, 7, 2, 5],
-#               [2, 0, 1, 3, 0, 2, 1, 5, 8, 8, 6, 9, 0, 1, 7, 6],
-#               [1, 8, 5, 5, 8, 4, 6, 8, 5, 6, 4, 0, 6, 2, 8, 9],
-#               [9, 0, 7, 1, 0, 6, 8, 8, 5, 4, 0, 7, 9, 8, 5, 5],
-#               [2, 5, 7, 8, 9, 4, 7, 6, 4, 9, 4, 0, 2, 9, 1, 6],
-#               [0, 6, 9, 1, 6, 8, 6, 0, 7, 7, 7, 0, 4, 2, 6, 9]])
-# print(A[0,0])
-# # a = idealBandPassingSingle(A, 20.0/60, 40.0/60, 1)
-# filter = getFilter('binom5')
-# a = ConvUpsample(A, filter, step=[2,2])
-# print(a)

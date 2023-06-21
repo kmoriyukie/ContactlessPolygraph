@@ -6,18 +6,15 @@ from filters import getFilter, correlationDownsample
 
 def buildLaplacian_(image, height=None,f1='binom5',f2='binom5'):
     [tmp, idx] = buildLaplacian(image[:,:,0], height, f1, f2)
-    # out = np.zeros((tmp.shape[0],tmp.shape[1],image.shape[2]))
-     
+
     aux = np.array(np.array(idx).shape)
     aux2 = np.array(np.array(tmp).shape)
     
-    # print(out)
     aux = np.append(aux,[3])
     aux2 = np.append(aux2, [3])
     idx_ = np.zeros(aux)
     out = np.zeros(aux2)
-    # print(out.shape)
-    # print(idx_)
+
     out[:,0] = tmp
     idx_[:,:,0] = idx
     out[:,1],idx_[:,:,1] = buildLaplacian(image[:,:,1], height, f1, f2)
@@ -36,7 +33,7 @@ def buildLaplacian(image, height=None, filt1='binom5', filt2='binom5'):
         filt2 = filt2
 
     maxHeight = 1 + maxPyramidHeight(np.array(image.shape), np.array([filt1.shape[0],filt2.shape[0]]).max())
-    # print(maxHeight)
+    
     if(height==None): height = maxHeight
     
     if(height <= 1):
@@ -61,14 +58,10 @@ def buildLaplacian(image, height=None, filt1='binom5', filt2='binom5'):
         hi2 = ConvUpsample(lo2, filt2, step=[2, 1],stop=image.shape)
     else:
         hi = ConvUpsample(lo2, filt2, step=[2, 1], stop=int_size)
-        # int_size = lo.shape
+        
         hi2 = ConvUpsample(hi, filt2, step=[1, 2],stop=image.shape,axis=1)
-        # lo2 = correlationDownsample(lo, filt1, [2, 1])
-    # print('image.shape', image.shape)
-    # print('hi2.shape', hi2.shape)
-    
+        
     hi2 = image - hi2
-    # print(hi.shape)
     hi2 = hi2.flatten('C')
     
     pyr = np.append(hi2, np.array(nPyramid))
@@ -76,7 +69,6 @@ def buildLaplacian(image, height=None, filt1='binom5', filt2='binom5'):
     indices = [image.shape]
     for i in nIndex:
         indices.append(i)
-    # print(np.array(indices).shape)
     return [pyr, indices]
         
 
@@ -110,7 +102,6 @@ def rebuildLaplacian(pyramid, indices, levels=None, filt2='binom5'):
     
     if(sum(1.0*(levels>1))>1):
         intSize = [indices[0][0], indices[1][1]]
-        # print(indices[1:indices.shape[0]-1])
         nres = rebuildLaplacian(pyramid[np.prod(resSize):pyramid.shape[0]], indices[1:indices.shape[0],:], levels-1,filt2)
         
         if(resSize[0] == 1):
@@ -124,7 +115,6 @@ def rebuildLaplacian(pyramid, indices, levels=None, filt2='binom5'):
         res = np.zeros(resSize)
 
     if(sum(1.0*(levels==1))>1):
-        # print(pyramidSubBand(pyramid, indices, 1).squeeze().shape)
         res += pyramidSubBand(pyramid, indices, 1).squeeze()
     return res
 
@@ -146,10 +136,10 @@ def ConvUpsample(image, filt, step, start=np.array([0,0]), stop=None, res=None,a
     if(res is None):
         res = np.zeros(stop-start)
     # upsample
+    
     tmp = np.zeros(res.shape)
     tmp[start[0]:stop[0]:step[0], start[1]:stop[1]:step[1]]=image
-    # filt = filt[np.newaxis]
-    # if(axis==1): filt = filt.transpose()
+
     out = scipy.ndimage.convolve1d(input=1.0*tmp, weights=filt,axis=axis,mode='mirror') + res
     print(out.shape)
     return out

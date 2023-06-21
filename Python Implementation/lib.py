@@ -19,7 +19,6 @@ def ntsc2rgb(img):
     img[:,:,2] = Y + 0.956 * I + 0.621 * Q #R
     img[:,:,1] = Y - 0.272 * I - 0.647 * Q #G
     img[:,:,0] = Y - 1.106 * I + 1.703 * Q #B
-    # img = normalizedImage(img)
     return img
 
 def rgb2ntsc(img):
